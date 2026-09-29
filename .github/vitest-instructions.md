@@ -1,30 +1,21 @@
 ---
-description: "Guidelines for writing Node.js and JavaScript code with Vitest testing"
-applyTo: '**/*.js, **/*.mjs, **/*.cjs'
+description: "Guidelines for Vitest tests in the RunTracker React and TypeScript PWA"
+applyTo: '**/*.{test,spec}.{js,jsx,ts,tsx}'
 ---
 
-# Code Generation Guidelines
+# Vitest Testing Guidelines
 
-## Coding standards
-- Use JavaScript with ES2022 features and Node.js (20+) ESM modules
-- Use Node.js built-in modules and avoid external dependencies where possible
-- Ask the user if you require any additional dependencies before adding them
-- Always use async/await for asynchronous code, and use 'node:util' promisify function to avoid callbacks
-- Keep the code simple and maintainable
-- Use descriptive variable and function names
-- Do not add comments unless absolutely necessary, the code should be self-explanatory
-- Never use `null`, always use `undefined` for optional values
-- Prefer functions over classes
+## Test design
+- Use Vitest, following the existing project configuration and file naming conventions.
+- Cover new behavior, edge cases, and error states; prefer pure unit tests for domain calculations and state transitions.
+- For React components, test user-visible behavior with the project's existing Testing Library setup.
+- Mock browser APIs and external services at their boundary. Never call live Google APIs or use real GPS in tests.
+- Use mocked positions only, and never persist complete GPS tracks in tests.
+- Verify that pausing stops both elapsed-time updates and location tracking, and that finishing a session is idempotent.
+- Keep tests independent of implementation details and do not change production code solely to make it easier to test.
 
-## Testing
-- Use Vitest for testing
-- Write tests for all new features and bug fixes
-- Ensure tests cover edge cases and error handling
-- NEVER change the original code to make it easier to test, instead, write tests that cover the original code as it is
-
-## Documentation
-- When adding new features or making significant changes, update the README.md file where necessary
-
-## User interactions
-- Ask questions if you are unsure about the implementation details, design choices, or need clarification on the requirements
-- Always answer in the same language as the question, but use english for the generated content like code, comments or docs
+## Vitest conventions
+- Use `vi` APIs for mocks, spies, and timers; do not use Jest APIs such as `jest.mock` or `jest.setTimeout`.
+- Restore mocks and timers after each test using the existing project setup.
+- Prefer focused assertions for loading, error, empty, retry, and success states.
+- Do not add dependencies or assume a test environment that is not already configured.

@@ -14,7 +14,7 @@ Fix test files in this order; each layer depends on the previous:
 1. **`act` import**  fix first, it unblocks everything else
 2. **`Simulate` → `fireEvent`**  fix immediately after act
 3. **Full react-dom/test-utils cleanup**  remove remaining imports
-4. **StrictMode call counts**  measure actual, don't guess
+4. **StrictMode effect replay**  verify cleanup and observable behavior
 5. **Async act wrapping**  for remaining "not wrapped in act" warnings
 6. **Custom render helper**  verify once per codebase, not per test
 
@@ -77,25 +77,11 @@ fireEvent.keyDown(element, { key: 'Enter', keyCode: 13 });
 
 ---
 
-## 4. StrictMode Call Count Fixes
+## 4. StrictMode Effect Replay
 
-React 19 StrictMode no longer double-invokes `useEffect` in development. Spy assertions counting effect calls must be updated.
+React 19 `StrictMode` still runs an extra setup-cleanup-setup cycle for Effects in development when enabled at the root. This is intentional and exposes missing cleanup; do not change expected effect counts on the assumption that React 19 removed this behavior.
 
-**Strategy  always measure, never guess:**
-```bash
-# Run the failing test, read the actual count from the error:
-npm test -- --watchAll=false --testPathPattern="[filename]" --forceExit 2>&1 | grep -E "Expected|Received"
-```
-
-```jsx
-// Before (React 18 StrictMode  effects ran twice):
-expect(mockFn).toHaveBeenCalledTimes(2);  // 1 call × 2 (strict double-invoke)
-
-// After (React 19 StrictMode  effects run once):
-expect(mockFn).toHaveBeenCalledTimes(1);
-```
-
-```jsx
-// Render-phase calls (component body)  still double-invoked in React 19 StrictMode:
-expect(renderSpy).toHaveBeenCalledTimes(2);  // stays at 2 for render body calls
-```
+- Prefer assertions on user-visible behavior and resource cleanup over exact effect call counts.
+- For subscriptions, timers, and geolocation watches, verify cleanup stops or removes the resource before the next setup and on unmount.
+- Keep render-phase purity tests separate: StrictMode may call component render logic an extra time in development.
+- Run the focused test with the repository's configured Vitest command. Do not use Jest-only flags such as `--watchAll` or `--testPathPattern`.
